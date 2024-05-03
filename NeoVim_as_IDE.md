@@ -14,8 +14,8 @@ To get started, download and install NeoVim on Fedora using dnf:
 sudo dnf install neovim
 ```
 
-or build from source:
-```basha
+Or build from source:
+```bash
 # install dependencies
 sudo dnf -y install ninja-build cmake gcc make unzip gettext curl glibc-gconv-extra
 
@@ -140,12 +140,10 @@ plugins = {
     "mbbill/undotree",
     "tpope/vim-fugitive",
     --lsp configuration
-    {"VonHeikemen/lsp-zero.nvim", branch = "v3.x"},
-    --lsp support dependencies
         {"neovim/nvim-lspconfig"}, --lsp configs
         {"hrsh7th/cmp-nvim-lsp"}, -- autocompletion
         {"hrsh7th/nvim-cmp"}, --additional autocompletion
-        {"L3MON4D3/LuaSnip"}, --snippet engine
+        {"L3MON4D3/LuaSnip", version = "v2.*", build = "make install_jsregexp", dependencies = {'saadparwaiz1/cmp_luasnip','rafamadriz/friendly-snippets'}, --snippet engine
         {"williamboman/mason.nvim"}, --lsp package manager
         {"williamboman/mason-lspconfig.nvim"}, --lsp package manager configs
     --color scheme, I like NeoSolarized for its support of the transparent terminals like kitty
@@ -228,11 +226,6 @@ vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 
 This sets `leader + u` to open the undotree ui.
 
-#### mason.lua
-```lua
-require("mason").setup({})
-require("mason-lspconfig").setup({})
-```
 
 This runs the setup for the mason LSP manager and the LSP configs.
 
@@ -274,8 +267,6 @@ local function bg_opacity()
 	vim.api.nvim_set_hl(0, "NormalFloat", {bg = "none"})
 end
 
-
-
 bg_opacity()
 ```
 
@@ -284,32 +275,55 @@ and creates transparency in the terminal.
 
 #### lsp.lua
 ```lua
--- Language Server configuration
-local lsp = require("lsp-zero")
-lsp.preset("recommended")
-lsp.ensure_installed({
-    -- list any lsp's you want installed here
-    'rust_analyzer',
+require("mason").setup({})
+require("mason-lspconfig").setup({
+    handlers = {
+        function(server_name)
+            local capabilities = require("cmp_nvim_lsp").default_capabilities()
+            require("lspconfig")[server_name].setup({
+                capabilities = capabilities
+            })
+        end,
+    },
 })
-
-lsp.nvim_workspace() -- fix undefined global 'vim'
-
--- Completion configuration
-local cmp = require('cmp')
-local cmp_select = {behavior = cmp.SelectBehavior.Select}
-local cmp_mappings = lsp.defaults.cmp_mappings({
-    ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
-    ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
-    ['<C-y>'] = cmp.mapping.confirm({select = true}),
-    ['<C Space>'] = cmp.mapping.complete(),
-})
-
-cmp_mappings['<Tab>'] = nil -- disable tab functionality
-cmp_mappings['<S-Tab>'] = nil -- disable shift-tab functionality
-
-lsp.setup_nvim_cmp({
-    mapping = cmp_mappings
-})
-
-
 ```
+This configures the lsp servers. This specific implementation offloads all 
+setup and management to mason.
+
+#### cmp.lua
+```lua
+local cmp = require("cmp")
+
+require('luasnip.loaders.from_vscode').lazy_load()
+
+setusetup({
+    snippet = {
+        expand = function(args)
+            require('luasnip').lsp_expand(args.body)
+        end,
+    },
+    window = {
+        completion = cmp.config.window.bordered(),
+        documentation = cmp.config.window.bordered(),
+    },
+    mapping = cmp.mapping.preset.insert({
+        --insert custom maps here
+    }),
+    sources = cmp.config.sources({
+        {name = 'nvim_lsp'},
+        {name = 'luasnip'},
+    }, {
+        {name = 'buffer'},
+    })
+})
+```
+Now that you have base functionality, it's time to tailor this setup for a
+low-level language like Rust.
+
+## Language-Specific Plugins and Configuration
+Let's use Rust as the first example. Although I will include languages as
+python, TypeScript, and Golang below. 
+
+#### Install plugins
+The two plugins to download are:
+- [rustacean.nvim](
