@@ -153,6 +153,7 @@ plugins = {
 
 require("lazy").setup(plugins, {})
 ```
+![plugins loaded](./assets/plugins_loaded.png)
 
 ## Configure the plugins after they are loaded:
 After plugins are loaded using Lazy.nvim, NeoVim looks for files in the
@@ -318,6 +319,7 @@ setusetup({
     })
 })
 ```
+![completion options](./assets/auto_complete_lsp_implemented.png)
 Now that you have base functionality, it's time to tailor this setup for a
 low-level language like Rust.
 
