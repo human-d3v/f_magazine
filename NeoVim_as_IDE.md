@@ -98,7 +98,8 @@ require("config.lazy")
 After saving and closing NeoVim, you will see a screen appear with the Lazy
 plugin management interface.
 
-#TODO -- add screenshot of lazy screen
+<!-- #TODO -- add screenshot of lazy screen -->
+![lazy.png](./assets/lazy_installed.png)
 
 
 ## Add additional plugins:
