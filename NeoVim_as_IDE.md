@@ -32,23 +32,23 @@ sudo make install
 installed.*
 
 After installation, it's time to configure NeoVim, you can do this by creating
-the `nvim` directory in your ~/.config directory.
+the `nvim` directory in your `~/.config` directory.
 ```bash
 mkdir ~/.config/nvim 
 ```
 ##### The directory structure:
-This can be a headache for new users. Inside the `./nvim` directory, the Lua
-API/Lazy package manager expect the following files and directories to be
+This can be a headache for new users. Inside the `~/.config/nvim` directory, both the Lua
+API and the Lazy package manager expect the following files and directories to be
 present. 
 
-*this can also be found by typing `:h runtimepath`*
+*the list of searched-for directories can also be found by typing `:h runtimepath`*
 
 ```
-./nvim/
-    ╰- init.lua
-    ╰- after/plugin/
-    ╰- lua/config/
-        ╰-lazy.lua
+.~/.config/nvim/
+            ╰- init.lua
+            ╰- after/plugin/
+            ╰- lua/config/
+                ╰-lazy.lua
 ```
 
 The `/after` directory contains any files to be loaded after the `init.lua`
@@ -60,7 +60,7 @@ Both `/plugin` and `/config` are both directories that will be searched by
 NeoVim for runtime files.
 
 ## The Lazy package manager. 
-Regardless of your desired language(s), the
+Regardless of your desired development language(s), the
 [Lazy.nvim](https://github.com/folke/lazy.nvim) package manager makes it
 incredibly easy to install and manage all of your packages. Inside of your
 `~/.config/lua/config/lazy.lua` file, copy the following starter script:
@@ -98,9 +98,8 @@ require("config.lazy")
 After saving and closing NeoVim, you will see a screen appear with the Lazy
 plugin management interface.
 
-<!-- #TODO -- add screenshot of lazy screen -->
 ![lazy.png](./assets/lazy_installed.png)
-
+*keep in mind that your terminal colorscheme will not match this one.*
 
 ## Add additional plugins:
 For any programming language, you will likely want the following plugins:
@@ -111,15 +110,13 @@ provides treesitter support for language parsers, queries, and additional
 features like syntax highlighting, indentation, and more.
 - [nvim-telescope](https://github.com/nvim-telescope/telescope.nvim) -- a fuzzy
   finder for searching both projects and files. 
-- [harpoon](https://github.com/ThePrimeagen/harpoon/tree/harpoon2) -- a ui
+- [harpoon](https://github.com/ThePrimeagen/harpoon/tree/harpoon2) -- a ui/cli
   utility for switching between files quickly.
 - [undotree](https://github.com/mbbill/undotree) -- a visual representation of
   the changes made to a file, making it easy to switch between undo branches.
 - [vim-fugitive](https://github.com/tpope/vim-fugitive) -- to add git
   functionality to your NeoVim experience.
-- [lsp-zero](https://github.com/VonHeikemen/lsp-zero) -- While neovim has
-  built-in LSP support, lsp-zero is a collection of plugins designed to set up
-  features like autocompletion, diagnostics, formatting, and more very easily.
+- [mason.nvim](https://github.com/williamboman/mason.nvim) for managing language servers (lsp).
 - A color scheme like [NeoSolarized](https://github.com/Tsuzat/NeoSolarized),
   [tokyonight](https://github.com/folke/tokyonight.nvim),
   [papercolor](https://github.com/NLKNguyen/papercolor-theme), or any of the
@@ -153,14 +150,17 @@ plugins = {
 
 require("lazy").setup(plugins, {})
 ```
+After closing and reopening NeoVim, you will find that the lazy package manager
+is downloading all of the above plugins.
+
 ![plugins loaded](./assets/plugins_loaded.png)
 
 ## Configure the plugins after they are loaded:
 After plugins are loaded using Lazy.nvim, NeoVim looks for files in the
 `~/.config/nvim/after/plugin/` directory to configure them.
 
-Each of the following sections goes over the configuration for each of the
-above plugins.
+The following sections goes over the configuration for each of the
+loaded plugins.
 
 #### treesitter.lua
 ```lua
@@ -261,15 +261,15 @@ NeoSolarized.setup({
 	end,
  })
 
-local function bg_opacity()
-	local clr = "NeoSolarized"
-	vim.cmd.colorscheme(clr)
+local function color_and_bg_opacity()
+	local color = "NeoSolarized"
+	vim.cmd.colorscheme(color)
 	vim.opt.background = "dark"
 	vim.api.nvim_set_hl(0, "Normal", {bg = "none"})
 	vim.api.nvim_set_hl(0, "NormalFloat", {bg = "none"})
 end
 
-bg_opacity()
+color_and_bg_opacity()
 ```
 
 This loads the colorscheme NeoSolarized, changes the visual highlight defaults,
@@ -319,8 +319,13 @@ setusetup({
     })
 })
 ```
-![completion options](./assets/auto_complete_lsp_implemented.png)
+*That there are **many ways** to configure lsp and completion
+support. From loading each server and configuring individual capabilities, to
+creating homebrewed lsp's and linking them to custom filetypes. This is only
+meant to show the basics.*
 
+![completion options](./assets/auto_complete_lsp_implemented.png)
+Completion has been configured.
 ## Language-Specific Plugins and Configuration
 
 #TODO Python 
