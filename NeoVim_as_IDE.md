@@ -326,7 +326,27 @@ low-level language like Rust.
 ## Language-Specific Plugins and Configuration
 Let's use Rust as the first example. Although I will include languages as
 python, TypeScript, and Golang below. 
+#TODO Rust Python TypeScript Golang 
+
+
+## Rust
+### Install Rust if you haven't already
+```bash
+## install rustup if you haven't already on Fedora
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+
+## after installation of rustup, install the nightly (or stable) toolchain and component clippy
+rustup toolchain install nightly --allow-downgrade --profile minimal --component clippy
+
+## finally, install the rust-analyzer LSP from rustup
+rustup component add rust-analyzer
+```
+### LSP
+When writing Rust in neovim using , it's important to avoid installing rust_analyzer via Mason, instead, use the 
+`rustup component add rust-analyzer` above. This will properly install the LSP to function with `rustaceanvim plugin`
 
 #### Install plugins
 The two plugins to download are:
-- [rustacean.nvim](
+- [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)
+
+
