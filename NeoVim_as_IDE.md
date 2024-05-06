@@ -44,7 +44,7 @@ present.
 *the list of searched-for directories can also be found by typing `:h runtimepath`*
 
 ```
-.~/.config/nvim/
+~/.config/nvim/
             ╰- init.lua
             ╰- after/plugin/
             ╰- lua/config/
@@ -194,9 +194,9 @@ end)
 ```
 
 This sets the following keymaps for use with telescope as a fuzzy finder:
-- leader + ff: Find files
-- leader + fg: Find git files
-- leader + ps: Grep for string
+- `leader + ff`: Find files
+- `leader + fg`: Find git files
+- `leader + ps`: Grep for string
 
 *keep in mind that you mapped your leader key to `space key` in your `~/.config/nvim/lua/config/lazy.lua`*
 
@@ -229,9 +229,19 @@ vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 This sets `leader + u` to open the undotree ui.
 
 
-This runs the setup for the mason LSP manager and the LSP configs.
-
 #### colors.lua
+
+This file can be as simple as setting the colorscheme, or as complex as
+changing individual components.
+
+##### Simple Configuration
+```lua
+-- assuming you decided to add {'rebelot/kanagawa.nvim'} to your lazy.lua file for your colorscheme
+
+vim.cmd.colorscheme('kanagawa')
+```
+
+##### More Complex Configuration
 ```lua
 local okay_status, NeoSolarized = pcall(require, "NeoSolarized")
 if not okay_status then
@@ -263,10 +273,10 @@ NeoSolarized.setup({
 
 local function color_and_bg_opacity()
 	local color = "NeoSolarized"
-	vim.cmd.colorscheme(color)
+	vim.cmd.colorscheme(color) -- set colorscheme
 	vim.opt.background = "dark"
-	vim.api.nvim_set_hl(0, "Normal", {bg = "none"})
-	vim.api.nvim_set_hl(0, "NormalFloat", {bg = "none"})
+	vim.api.nvim_set_hl(0, "Normal", {bg = "none"}) -- set transparent bg
+	vim.api.nvim_set_hl(0, "NormalFloat", {bg = "none"}) -- set transparent bg
 end
 
 color_and_bg_opacity()
@@ -319,18 +329,33 @@ setusetup({
     })
 })
 ```
-*That there are **many ways** to configure lsp and completion
-support. From loading each server and configuring individual capabilities, to
-creating homebrewed lsp's and linking them to custom filetypes. This is only
-meant to show the basics.*
+*There are **many ways** to configure lsp and completion support. From loading
+each server and configuring individual capabilities, to creating custom 
+language servers linking them to custom filetypes. This is only meant to show
+an easy-to-implement approach.*
 
 ![completion options](./assets/auto_complete_lsp_implemented.png)
 Completion has been configured.
+
+The new file structure after loading the plugins and configuring each one looks like this:
+```
+~/.config/nvim/
+            ╰- init.lua
+            ╰- after/plugin/
+                           ╰- cmp.lua
+                           ╰- colors.lua
+                           ╰- harpoon.lua
+                           ╰- lsp.lua
+                           ╰- telescope.lua
+                           ╰- treesitter.lua
+                           ╰- undotree.lua
+            ╰- lua/config/
+                         ╰-lazy.lua
+```
+
 ## Language-Specific Plugins and Configuration
-
-#TODO Python 
-
-#TODO TypeScript 
+How you decide to implement any of the following configurations depends on your
+use case. 
 
 #TODO Golang 
 
@@ -350,7 +375,7 @@ rustup component add rust-analyzer
 ### LSP
 When writing Rust in neovim using , it's important to avoid installing
 rust_analyzer via Mason, instead, use the `rustup component add rust-analyzer`
-above. This will properly install the LSP to function with `rustaceanvim
+command above. This will properly install the LSP to function with `rustaceanvim
 plugin`
 
 #### Install plugins
@@ -370,25 +395,25 @@ local bufnr = vim.api.nvim_get_current_buf()
 
 -- FileType specific keymaps
 vim.api.nvim_create_autocmd("FileType", {
-    pattern = {"rust", "rs", "Rust"},
-	callback = function ()
-		vim.schedule(function ()
-			vim.keymap.set("n", "<leader>rr", ":RustRun<CR>", {buffer = true})
-			--rustaceanvim remaps
-				--code actions
-					vim.keymap.set("n", "<leader>ca", function ()
-						vim.cmd.RustLsp('codeAction')
-					end, {silent = true, buffer = bufnr})
-				-- hover actions
-					vim.keymap.set("n", "<leader>K", function ()
-						vim.cmd.RustLsp { 'hover', 'actions' }
-					end, {silent = true, buffer = bufnr})
-				--explain error
-					vim.keymap.set("n", "<leader>e", function ()
-						vim.cmd('explainError')
-					end, {silent = true, buffer = bufnr})
-		end)
-	end
+  pattern = {"rust", "rs", "Rust"},
+  callback = function ()
+    vim.schedule(function ()
+      vim.keymap.set("n", "<leader>rr", ":RustRun<CR>", {buffer = true})
+	  --rustaceanvim remaps
+		--code actions
+		vim.keymap.set("n", "<leader>ca", function ()
+		  vim.cmd.RustLsp('codeAction')
+		end, {silent = true, buffer = bufnr})
+	  -- hover actions
+		vim.keymap.set("n", "<leader>K", function ()
+			vim.cmd.RustLsp { 'hover', 'actions' }
+        end, {silent = true, buffer = bufnr})
+	  --explain error
+		vim.keymap.set("n", "<leader>e", function ()
+		  vim.cmd('explainError')
+		end, {silent = true, buffer = bufnr})
+	end)
+  end
 })
 ```
 
@@ -405,9 +430,9 @@ debugger (gpd)](https://www.sourceware.org/gdb/) in conjuction with the `nvim-da
 
 In the same `rust.lua` file:
 ```lua
---partial file
+-- partial file
 
---for debugging
+-- for debugging
 
 local dap = require('dap')
 dap.adapters.gdb = {
@@ -417,16 +442,105 @@ dap.adapters.gdb = {
 }
 
 dap.configurations.rust = {
-	{
-		name = "Launch",
-		type = "gdb", 
-		request = "launch",
-		program = function()
-			return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
-		end,
-		cwd = "${workspaceFolder}",
-		stopAtBegginingOfMainSubProgram = false,
-	}
+  {
+	name = "Launch",
+	type = "gdb", 
+	request = "launch",
+	program = function()
+		return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+	end,
+	cwd = "${workspaceFolder}",
+	stopAtBegginingOfMainSubProgram = false,
+  }
 }
+```
+
+## Python
+As a researcher and data scientist, my implementation of Python may be
+different than those in the development sphere.
+
+- [pyright](https://github.com/microsoft/pyright) for language server support,
+  static type checking, and code completion with `nvim-lsp-cmp`.
+    - This can be installed using `:MasonInstall pyright` from the command line
+      in NeoVim. 
+
+
+If you are hoping to work in a way similar to R-Programming Language, where you
+send commands to a terminal to work with data stored in memory, These two
+functions are used to create a python REPL and send selections of code to be
+evaluated in the REPL. You can add these to your
+`~/.config/nvim/after/plugin/python.lua` file.
+
+```lua
+function OpenTerminalBuffer(termType)
+    -- save current buffer
+    local code_buf = vim.api.nvim_get_current_buf()
+    -- open a terminal buffer
+    vim.api.nvim_exec2('belowright split | term', {output = true})
+    -- save terminal buffer
+    local term_buf = vim.api.nvim_get_current_buf()
+    vim.api.nvim_chan_send(vim.api.nvim_get_option_value('channel', {buffer = term_buf}), termType .. "\r")
+    vim.api.nvim_set_current_buf(code_buf)
+end
+
+function SendToTerminal(opt)
+   -- 0: send current line to buffer
+   -- 1: send visual selection to buffer
+   -- 2: send entire file up to and including current line to buffer
+   
+   -- extract text from current buffer
+   local txt = ''
+    if opt == 1 then
+        vim.cmd('normal! gv"xy') -- move visual selection to x register
+        txt = vim.fn.getreg('x')
+    elseif opt == 2 then
+        local ln, _ = unpack(vim.api.nvim_win_get_cursor(0))
+        local line_txts = vim.api.nvim_buf_get_lines(vim.api.nvim_get_current_buf(), 0, ln, false)
+        txt = table.concat(line_txts, '\n')
+    else 
+        txt = vim.api.nvim_get_current_line()
+   end
+
+    -- locate terminal buffer
+   local term_buf = nil
+   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.bo[bufnr].buftype == 'terminal' then
+            termbuf = buf
+            break
+        end
+    end
+    if term_buf == nil then
+        print('No terminal buffer found')
+        return
+    end
+    
+    vim.api.nvim_chan_send(vim.api.nvim_get_option_value('channel', {buffer = term_buf}), txt .. "\r")
+end
+
+vim.api.nvim_create_autocmd('FileType', {
+    pattern = {'python'},
+    callback = function()
+        vim.schedule(function()
+            vim.keymap.set('n', '<leader><leader>py', [[:lua OpenTerminalBuffer("python3")<CR>]])
+            vim.keymap.set({'v','x'}, '<BSlash>d', [[:lua SnendToTerminal(1)<CR>]])
+            vim.keymap.set('n', '<BSlash>d', [[:lua SnendToTerminal(0)<CR>]])
+            vim.keymap.set('n', '<BSlash>aa', [[:lua SnendToTerminal(2)<CR>]])
+        end)
+    end,
+})
 
 ```
+
+This creates two functions `OpenTerminalBuffer` and `SendToTerminal`, then
+remaps keybindings to the following:
+- `<leader><leader>py` to open a python REPL in a terminal buffer.
+- `\d` to send a visual selection or visual block to the REPL.
+- `\d` to send the current line to the REPL.
+- `\aa` to send the entire file up to and including the current line to the REPL.
+
+![python repl](./assets/python_repl.gif)
+
+
+
+## TypeScript
+
