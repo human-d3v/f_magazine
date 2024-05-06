@@ -320,17 +320,18 @@ setusetup({
 })
 ```
 ![completion options](./assets/auto_complete_lsp_implemented.png)
-Now that you have base functionality, it's time to tailor this setup for a
-low-level language like Rust.
 
 ## Language-Specific Plugins and Configuration
-Let's use Rust as the first example. Although I will include languages as
-python, TypeScript, and Golang below. 
-#TODO Rust Python TypeScript Golang 
+
+#TODO Python 
+
+#TODO TypeScript 
+
+#TODO Golang 
 
 
 ## Rust
-### Install Rust if you haven't already
+### Install Rust if you haven't already using `rustup`.
 ```bash
 ## install rustup if you haven't already on Fedora
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
@@ -342,11 +343,85 @@ rustup toolchain install nightly --allow-downgrade --profile minimal --component
 rustup component add rust-analyzer
 ```
 ### LSP
-When writing Rust in neovim using , it's important to avoid installing rust_analyzer via Mason, instead, use the 
-`rustup component add rust-analyzer` above. This will properly install the LSP to function with `rustaceanvim plugin`
+When writing Rust in neovim using , it's important to avoid installing
+rust_analyzer via Mason, instead, use the `rustup component add rust-analyzer`
+above. This will properly install the LSP to function with `rustaceanvim
+plugin`
 
 #### Install plugins
 The two plugins to download are:
-- [rustaceanvim](https://github.com/mrcjkb/rustaceanvim)
+- [rustaceanvim](https://github.com/mrcjkb/rustaceanvim) for a host of extra
+  tools, including lsp, man pages, advanced running capabilities and more.
+- [nvim-dap](https://github.com/mfussenegger/nvim-dap) (Debug Adapter Protocol)
+  for added debugging capabilities.
 
+#### Configure Plugins
+In `.config/nvim/after/plugin/rust.lua` file, below is an example of a FileType
+specific remapping to add keymaps on Rust files and interact with `rustaceanvim`.
 
+```lua
+-- find local buffer
+local bufnr = vim.api.nvim_get_current_buf()
+
+-- FileType specific keymaps
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = {"rust", "rs", "Rust"},
+	callback = function ()
+		vim.schedule(function ()
+			vim.keymap.set("n", "<leader>rr", ":RustRun<CR>", {buffer = true})
+			--rustaceanvim remaps
+				--code actions
+					vim.keymap.set("n", "<leader>ca", function ()
+						vim.cmd.RustLsp('codeAction')
+					end, {silent = true, buffer = bufnr})
+				-- hover actions
+					vim.keymap.set("n", "<leader>K", function ()
+						vim.cmd.RustLsp { 'hover', 'actions' }
+					end, {silent = true, buffer = bufnr})
+				--explain error
+					vim.keymap.set("n", "<leader>e", function ()
+						vim.cmd('explainError')
+					end, {silent = true, buffer = bufnr})
+		end)
+	end
+})
+```
+
+This remaps the following for Rust Files:
+- `<leader>rr` to the NeoVim terminal command ":RustRun" to run the current file.
+- `<leader>ca` to display the codeaction using the Rust LSP.
+- `<keader>K` to give the LSP hover capabilities.
+- `<leader>e` to explain errors more verbosely.
+
+There are tons of capabilities available to customize on the [useage and features](https://github.com/mrcjkb/rustaceanvim?tab=readme-ov-file#books-usage--features) section of the `rustaceanvim` wiki.
+
+Then, it's time to configure the debugging. We're going to use the [gnu project
+debugger (gpd)](https://www.sourceware.org/gdb/) in conjuction with the `nvim-dap` plugin;
+
+In the same `rust.lua` file:
+```lua
+--partial file
+
+--for debugging
+
+local dap = require('dap')
+dap.adapters.gdb = {
+	type = "executable",
+	command = "gdb",
+	args = {"-i", "dap"}
+}
+
+dap.configurations.rust = {
+	{
+		name = "Launch",
+		type = "gdb", 
+		request = "launch",
+		program = function()
+			return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+		end,
+		cwd = "${workspaceFolder}",
+		stopAtBegginingOfMainSubProgram = false,
+	}
+}
+
+```

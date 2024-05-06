@@ -41,6 +41,7 @@ local plugins = {
 		ft = { "markdown" },
 		build = function() vim.fn["mkdp#util#install"]() end,
 	},
+	{'mfussenegger/nvim-dap'},
 }
 
 require("lazy").setup(plugins, {})

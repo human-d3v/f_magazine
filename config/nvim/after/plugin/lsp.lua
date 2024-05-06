@@ -10,10 +10,6 @@ require("mason-lspconfig").setup({
     },
 })
 
-
-require('mason-lspconfig').setup_handlers {
-  ['rust_analyzer'] = function() end,
-}
 --specific for lsp support for neovim configuration
 --shoutout to @VonHeikemen
 --local function nvim_workspace(opts)
