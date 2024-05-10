@@ -1,12 +1,7 @@
 # Setting up Development Environment with NeoVim on Fedora
-### Supercharge your development environment for Golang, Rust, TypeScript, Python, C++, and more.
+### Supercharge your development environment for Rust, TypeScript, Python, and more.
 
-#TODO -- Introduction
 
-I'm not a software engineer. I'm a FOSS enthusiast, a researcher, and data
-scientist. This tutorial will help guide those who know very little about
-configuring NeoVim, to help them get from text editor to a fully-featured
-development environment.
 
 ### Downloading NeoVim on Fedora and getting started
 To get started, download and install NeoVim on Fedora using dnf:
@@ -48,7 +43,7 @@ present.
             ╰- init.lua
             ╰- after/plugin/
             ╰- lua/config/
-                ╰-lazy.lua
+                         ╰-lazy.lua
 ```
 
 The `/after` directory contains any files to be loaded after the `init.lua`
@@ -131,7 +126,7 @@ These plugins can all be added to the plugins list in
 plugins = {
     "nvim-lua/plenary.nvim",
     {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
-    {"nvim-telescope/telescope.nvim", tag = '0.1.1', 
+    {"nvim-telescope/telescope.nvim", tag = '0.1.6', 
         requires = { {"nvim-lua/plenary.nvim"}}},
     {"ThePrimeagen/harpoon", branch = "harpoon2",
         dependencies = {"nvim-lua/plenary.nvim"}},
@@ -159,10 +154,7 @@ is downloading all of the above plugins.
 After plugins are loaded using Lazy.nvim, NeoVim looks for files in the
 `~/.config/nvim/after/plugin/` directory to configure them.
 
-The following sections goes over the configuration for each of the
-loaded plugins.
-
-#### treesitter.lua
+### [](treesitter) treesitter.lua
 ```lua
 require("nvim-treesitter.configs").setup({
     ensure_installed = {"lua", "python","rust","go", "vimdoc", "c"}, --any language parsers you want installed
@@ -183,7 +175,7 @@ require("nvim-treesitter.configs").setup({
 })
 ```
 
-#### telescope.lua
+### [](telescope) telescope.lua 
 ```lua 
 local builtin = require("telescope.builtin")
 vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
@@ -200,7 +192,7 @@ This sets the following keymaps for use with telescope as a fuzzy finder:
 
 *keep in mind that you mapped your leader key to `space key` in your `~/.config/nvim/lua/config/lazy.lua`*
 
-#### harpoon.lua
+### harpoon.lua
 ```lua
 local harpoon = require("harpoon")
 
@@ -221,7 +213,7 @@ vim.keymap.set("n", "<C-S-P>", function() harpoon:list():prev() end)
 vim.keymap.set("n", "<C-S-N>", function() harpoon:list():next() end)
 ```
 
-#### undotree.lua
+### undotree.lua
 ```lua
 vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 ```
@@ -229,19 +221,19 @@ vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 This sets `leader + u` to open the undotree ui.
 
 
-#### colors.lua
+### colors.lua
 
 This file can be as simple as setting the colorscheme, or as complex as
 changing individual components.
 
-##### Simple Configuration
+#### Simple Configuration
 ```lua
 -- assuming you decided to add {'rebelot/kanagawa.nvim'} to your lazy.lua file for your colorscheme
 
 vim.cmd.colorscheme('kanagawa')
 ```
 
-##### More Complex Configuration
+#### More Complex Configuration
 ```lua
 local okay_status, NeoSolarized = pcall(require, "NeoSolarized")
 if not okay_status then
@@ -298,9 +290,41 @@ require("mason-lspconfig").setup({
         end,
     },
 })
+
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+        local bufnr = args.buf
+        local opts = {buf = bufnr, remap = false}
+		vim.keymap.set("n","gd",function() vim.lsp.buf.definition() end, opts) --go to definition
+		vim.keymap.set('n','K',function() vim.lsp.buf.hover() end, opts) -- hover
+		vim.keymap.set('n','<leader>vws', function() vim.lsp.buf.workspace_symbol() end, opts) --view workspace
+		vim.keymap.set('n','<leader>vd', function() vim.diagnostic.open_foat() end, opts) --view diagnostic
+		vim.keymap.set('n','[d',function() vim.diagnostic.goto_next() end, opts)
+		vim.keymap.set('n',']d',function() vim.diagnostic.goto_prev() end, opts)
+		vim.keymap.set('n','<leader>vca', function() vim.lsp.buf.code_action() end, opts) --view code action
+		vim.keymap.set('n','<leader>vrn', function() vim.lsp.buf.rename() end, opts) --rename variables
+		vim.keymap.set('n','<leader>vrr', function() vim.lsp.buf.references() end, opts)
+		vim.keymap.set('i','<leader>h', function() vim.lsp.buf.signature_help() end, opts)
+    end
+})
+
 ```
-This configures the lsp servers. This specific implementation offloads all 
-setup and management to mason.
+This configures the LSP servers. This specific implementation offloads all 
+setup and management to mason. 
+
+When a file is opened, the parsers provided by treesitter trigger the LSP to
+attach to the buffer. The above autocmd configures the keymaps for the LSP to
+the following:
+- `gd` - go to definition
+- `K` - Hover
+- `<leader>vws` - view workspace
+- `<leader>vd` - view diagnostic
+- `[d` - next diagnostic
+- `]d` - previous diagnostic
+- `<leader>vca` - view code action
+- `<leader>vrn` - rename variables
+- `<leader>vrr` - view references
+- `<leader>h` - view signature help 
 
 #### cmp.lua
 ```lua
@@ -315,11 +339,15 @@ setusetup({
         end,
     },
     window = {
-        completion = cmp.config.window.bordered(),
-        documentation = cmp.config.window.bordered(),
+        -- uncomment the following if you want bordered completion options
+        -- completion = cmp.config.window.bordered(),
+        -- documentation = cmp.config.window.bordered(),
     },
     mapping = cmp.mapping.preset.insert({
-        --insert custom maps here
+	    ['<C-p>'] = cmp.mapping.select_prev_item({select = true}),
+	    ['<C-n>'] = cmp.mapping.select_next_item({select = true}),
+	    ['<C-Space>'] = cmp.mapping.complete(),
+	    ['<C-y>'] = cmp.mapping.confirm({select = true}),
     }),
     sources = cmp.config.sources({
         {name = 'nvim_lsp'},
@@ -354,11 +382,10 @@ The new file structure after loading the plugins and configuring each one looks 
 ```
 
 ## Language-Specific Plugins and Configuration
-How you decide to implement any of the following configurations depends on your
-use case. 
-
-#TODO Golang 
-
+One of the wonderful parts of setting up NeoVim for your specific workflow and
+language(s) is its customizability. How you interact with your codebase in
+entirely up to you. Such a blank canvas can be daunting. So I've prepared a few
+examples of configuration to get you started.
 
 ## Rust
 ### Install Rust if you haven't already using `rustup`.
@@ -373,17 +400,49 @@ rustup toolchain install nightly --allow-downgrade --profile minimal --component
 rustup component add rust-analyzer
 ```
 ### LSP
-When writing Rust in neovim using , it's important to avoid installing
-rust_analyzer via Mason, instead, use the `rustup component add rust-analyzer`
+When writing Rust in neovim using `rustaceanvim`, it's important to avoid installing
+rust-analyzer via Mason, instead, use the `rustup component add rust-analyzer`
 command above. This will properly install the LSP to function with `rustaceanvim
-plugin`
+plugin`. This avoids downloading the rust-analyzer with the wrong toolchain.
 
-#### Install plugins
+#### Load plugins
 The two plugins to download are:
 - [rustaceanvim](https://github.com/mrcjkb/rustaceanvim) for a host of extra
   tools, including lsp, man pages, advanced running capabilities and more.
 - [nvim-dap](https://github.com/mfussenegger/nvim-dap) (Debug Adapter Protocol)
   for added debugging capabilities.
+
+To load the plugins, add them to the `plugins` section of the `~/.config/nvim/lua/config/lazy.lua` file.
+```lua
+--- partial file
+-- ~/.config/nvim/lua/config/lazy.lua
+
+plugins = {
+    "nvim-lua/plenary.nvim",
+	{"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
+	{"nvim-telescope/telescope.nvim", tag = "0.1.1",
+		requires = { {"nvim-lua/plenary.nvim"}}},
+	{"ThePrimeagen/harpoon",branch = "harpoon2",
+		dependencies = {"nvim-lua/plenary.nvim"}},
+	"mbbill/undotree",
+	"tpope/vim-fugitive",
+	--lsp configuration
+		{"neovim/nvim-lspconfig"},
+		{"hrsh7th/cmp-nvim-lsp"}, --autocompletion
+		{"hrsh7th/nvim-cmp"}, --additional autocompletion
+		{"L3MON4D3/LuaSnip", version = "v2.*", build = "make install_jsregexp",
+			dependencies = {'saadparwaiz1/cmp_luasnip', 
+				'rafamadriz/friendly-snippets'}}, --snippet engine
+		{"williamboman/mason.nvim"}, --lsp manager
+		{"williamboman/mason-lspconfig.nvim"}, --lsp configs manager
+	--colorscheme
+	{"Tsuzat/NeoSolarized.nvim",lazy = false, priority=1000},
+    -- for Rust programming 
+	{'mrcjkb/rustaceanvim', version = '^4', lazy = false},
+	{'mfussenegger/nvim-dap'},
+}
+
+```
 
 #### Configure Plugins
 In `.config/nvim/after/plugin/rust.lua` file, below is an example of a FileType
@@ -411,7 +470,7 @@ vim.api.nvim_create_autocmd("FileType", {
 	  --explain error
 		vim.keymap.set("n", "<leader>e", function ()
 		  vim.cmd('explainError')
-		end, {silent = true, buffer = bufnr})
+		    end, {silent = true, buffer = bufnr})
 	end)
   end
 })
@@ -431,6 +490,7 @@ debugger (gpd)](https://www.sourceware.org/gdb/) in conjuction with the `nvim-da
 In the same `rust.lua` file:
 ```lua
 -- partial file
+-- ~/.config/nvim/after/plugins/rust.lua
 
 -- for debugging
 
@@ -454,8 +514,31 @@ dap.configurations.rust = {
   }
 }
 ```
+Here's an example of the code-action from rustaceanvim:
+![rust code-action](./assets/rust_code-action.png)
 
 ## Python
+#### Installation
+To install Python3 on Fedora, you can either install via `dnf` or build from
+source (not shown here).
+```bash
+### install the latest version of Python3.12 and pip (python package manager) with dnf
+sudo dnf install python3.12 python3-pip
+```
+#### Optional Installation
+Common python packages that can be installed via `dnf` include:
+- [python3-devel](https://packages.fedoraproject.org/pkgs/python3.12/python3-devel/)
+  -- for development headers and libraries.
+- [python3-virtualenv](https://packages.fedoraproject.org/pkgs/python-virtualenv/python3-virtualenv/)
+  -- for building virtual environments.
+- [python3-pandas](https://packages.fedoraproject.org/pkgs/python-pandas/python3-pandas/)
+  --for working with structured data in dataframes.
+- [python3-numpy](https://packages.fedoraproject.org/pkgs/python-numpy/python3-numpy/)
+  -- for working with numerical data in arrays.
+```bash
+sudo dnf install python3-devel python3-virtualenv python3-pandas python3-numpy
+```
+#### LSP Support
 As a researcher and data scientist, my implementation of Python may be
 different than those in the development sphere.
 
@@ -464,7 +547,7 @@ different than those in the development sphere.
     - This can be installed using `:MasonInstall pyright` from the command line
       in NeoVim. 
 
-
+#### Workflow Specific Configuration
 If you are hoping to work in a way similar to R-Programming Language, where you
 send commands to a terminal to work with data stored in memory, These two
 functions are used to create a python REPL and send selections of code to be
@@ -481,6 +564,19 @@ function OpenTerminalBuffer(termType)
     local term_buf = vim.api.nvim_get_current_buf()
     vim.api.nvim_chan_send(vim.api.nvim_get_option_value('channel', {buffer = term_buf}), termType .. "\r")
     vim.api.nvim_set_current_buf(code_buf)
+end
+
+local function nextLine()
+    local current_line = vim.api.nvim_win_get_cursor(0)[1]
+	local total_lines = vim.api.nvim_buf_line_count(0)
+
+	for i = current_line+1, total_lines do
+		local line_content = vim.api.nvim_buf_get_lines(0, i-1, i, false)[1]
+		if line_content:match('^%S') then 
+			vim.api.nvim_win_set_cursor(0, {i, 0})
+			break
+		end
+	end
 end
 
 function SendToTerminal(opt)
@@ -500,6 +596,9 @@ function SendToTerminal(opt)
     else 
         txt = vim.api.nvim_get_current_line()
    end
+
+    -- move cursor to next non-whitespace line
+    nextLine()
 
     -- locate terminal buffer
    local term_buf = nil
@@ -536,11 +635,47 @@ remaps keybindings to the following:
 - `<leader><leader>py` to open a python REPL in a terminal buffer.
 - `\d` to send a visual selection or visual block to the REPL.
 - `\d` to send the current line to the REPL.
-- `\aa` to send the entire file up to and including the current line to the REPL.
+- `\aa` to send the entire file up to and including the current line to the
+  REPL.
 
 ![python repl](./assets/python_repl.gif)
 
 
 
 ## TypeScript
+#### Installation
+To install TypeScript support on Fedora, you will need Node.js and npm
+(node package manager). (Or comparable runtime like [Bun](https://bun.sh/))
+```bash
+### if you want to install nodejs and npm directly from the fedora repos
+sudo dnf install nodejs npm  
 
+### or install nvm if you want to control which version of nodejs you use (lts vs. latest)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+```
+If you decide to use `nvm`, you can install the latest version of nodejs with
+`nvm install node`, and install the latest version of npm using `nvm
+install-latest-npm`. `nvm` is a good option if you are working on projects that
+rely on LTS versions of nodejs. You will have to manage updates manually, it
+won't update when you use `sudo dnf update`.
+
+Next, install TypeScript either to your project or globally:
+```bash
+## locally
+npm install typescript --save-dev
+
+## globally
+npm install -g typescript
+```
+
+#### LSP Support
+The following LSP's are helpful in writing TypeScript and can be installed with
+mason:
+- `:MasonInstall tsserver` - TypeScript Language Server for LSP support.
+- `:MasonInstall eslint_d` - eslint for linting.
+
+![typescript hover on type](./assets/typescript-hover.png)
+While there are plugins available specifically for typescript like
+[typescript-tools.nvim](https://github.com/pmizio/typescript-tools.nvim), I
+have found that LSP support is enough for a basic implementation to work in
+TypeScript. 
