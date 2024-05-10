@@ -138,8 +138,8 @@ plugins = {
         {"L3MON4D3/LuaSnip", version = "v2.*", build = "make install_jsregexp", dependencies = {'saadparwaiz1/cmp_luasnip','rafamadriz/friendly-snippets'}}, --snippet engine
         {"williamboman/mason.nvim"}, --lsp package manager
         {"williamboman/mason-lspconfig.nvim"}, --lsp package manager configs
-    --color scheme, I like NeoSolarized for its support of the transparent terminals like kitty
-    {"Tsuzat/NeoSolarized", lazy = false, priority = 1000}, 
+    --color scheme 
+    {'rebelot/kanagawa.nvim'}, 
 }
 
 require("lazy").setup(plugins, {})
