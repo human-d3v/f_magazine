@@ -147,7 +147,7 @@ require("lazy").setup(plugins, {})
 After closing and reopening NeoVim, you will find that the lazy package manager
 is downloading all of the above plugins.
 
-![plugins loaded](./assets/02-plugins_loaded.png)
+![plugins loaded](./assets/02-plugins-loaded.png)
 
 ## Configure the plugins after they are loaded:
 After plugins are loaded using Lazy.nvim, NeoVim looks for files in the
