@@ -93,8 +93,7 @@ require("config.lazy")
 After saving and closing NeoVim, you will see a screen appear with the Lazy
 plugin management interface.
 
-![lazy.png](./assets/lazy_installed.png)
-*keep in mind that your terminal colorscheme will not match this one.*
+![lazy.png](./assets/01-lazy-loaded.png)
 
 ## Add additional plugins:
 For any programming language, you will likely want the following plugins:
@@ -148,7 +147,7 @@ require("lazy").setup(plugins, {})
 After closing and reopening NeoVim, you will find that the lazy package manager
 is downloading all of the above plugins.
 
-![plugins loaded](./assets/plugins_loaded.png)
+![plugins loaded](./assets/02-plugins_loaded.png)
 
 ## Configure the plugins after they are loaded:
 After plugins are loaded using Lazy.nvim, NeoVim looks for files in the
@@ -515,7 +514,7 @@ dap.configurations.rust = {
 }
 ```
 Here's an example of the code-action from rustaceanvim:
-![rust code-action](./assets/rust_code-action.png)
+![rust code-action](./assets/03-rust-code-action.png)
 
 ## Python
 #### Installation
