@@ -136,7 +136,7 @@ plugins = {
         {"neovim/nvim-lspconfig"}, --lsp configs
         {"hrsh7th/cmp-nvim-lsp"}, -- autocompletion
         {"hrsh7th/nvim-cmp"}, --additional autocompletion
-        {"L3MON4D3/LuaSnip", version = "v2.*", build = "make install_jsregexp", dependencies = {'saadparwaiz1/cmp_luasnip','rafamadriz/friendly-snippets'}, --snippet engine
+        {"L3MON4D3/LuaSnip", version = "v2.*", build = "make install_jsregexp", dependencies = {'saadparwaiz1/cmp_luasnip','rafamadriz/friendly-snippets'}}, --snippet engine
         {"williamboman/mason.nvim"}, --lsp package manager
         {"williamboman/mason-lspconfig.nvim"}, --lsp package manager configs
     --color scheme, I like NeoSolarized for its support of the transparent terminals like kitty
@@ -294,7 +294,7 @@ require("mason-lspconfig").setup({
 vim.api.nvim_create_autocmd("LspAttach", {
     callback = function(args)
         local bufnr = args.buf
-        local opts = {buf = bufnr, remap = false}
+        local opts = {buffer = bufnr, remap = false}
 		vim.keymap.set("n","gd",function() vim.lsp.buf.definition() end, opts) --go to definition
 		vim.keymap.set('n','K',function() vim.lsp.buf.hover() end, opts) -- hover
 		vim.keymap.set('n','<leader>vws', function() vim.lsp.buf.workspace_symbol() end, opts) --view workspace
@@ -332,7 +332,7 @@ local cmp = require("cmp")
 
 require('luasnip.loaders.from_vscode').lazy_load()
 
-setusetup({
+cmp.setup({
     snippet = {
         expand = function(args)
             require('luasnip').lsp_expand(args.body)
@@ -556,14 +556,11 @@ evaluated in the REPL. You can add these to your
 
 ```lua
 function OpenTerminalBuffer(termType)
-    -- save current buffer
-    local code_buf = vim.api.nvim_get_current_buf()
     -- open a terminal buffer
     vim.api.nvim_exec2('belowright split | term', {output = true})
     -- save terminal buffer
     local term_buf = vim.api.nvim_get_current_buf()
-    vim.api.nvim_chan_send(vim.api.nvim_get_option_value('channel', {buffer = term_buf}), termType .. "\r")
-    vim.api.nvim_set_current_buf(code_buf)
+    vim.api.nvim_chan_send(vim.api.nvim_get_option_value('channel', {buf = term_buf}), termType .. "\r")
 end
 
 local function nextLine()
@@ -604,7 +601,7 @@ function SendToTerminal(opt)
    local term_buf = nil
    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
         if vim.bo[bufnr].buftype == 'terminal' then
-            termbuf = buf
+            term_buf = bufnr
             break
         end
     end
@@ -613,7 +610,7 @@ function SendToTerminal(opt)
         return
     end
     
-    vim.api.nvim_chan_send(vim.api.nvim_get_option_value('channel', {buffer = term_buf}), txt .. "\r")
+    vim.api.nvim_chan_send(vim.api.nvim_get_option_value('channel', {buf = term_buf}), txt .. "\r")
 end
 
 vim.api.nvim_create_autocmd('FileType', {
@@ -621,9 +618,9 @@ vim.api.nvim_create_autocmd('FileType', {
     callback = function()
         vim.schedule(function()
             vim.keymap.set('n', '<leader><leader>py', [[:lua OpenTerminalBuffer("python3")<CR>]])
-            vim.keymap.set({'v','x'}, '<BSlash>d', [[:lua SnendToTerminal(1)<CR>]])
-            vim.keymap.set('n', '<BSlash>d', [[:lua SnendToTerminal(0)<CR>]])
-            vim.keymap.set('n', '<BSlash>aa', [[:lua SnendToTerminal(2)<CR>]])
+            vim.keymap.set({'v','x'}, '<BSlash>d', [[:lua SendToTerminal(1)<CR>]])
+            vim.keymap.set('n', '<BSlash>d', [[:lua SendToTerminal(0)<CR>]])
+            vim.keymap.set('n', '<BSlash>aa', [[:lua SendToTerminal(2)<CR>]])
         end)
     end,
 })
