@@ -54,6 +54,12 @@ The `/lua` directory contains the Lua Plugins.
 Both `/plugin` and `/config` are both directories that will be searched by
 NeoVim for runtime files.
 
+This script will build the basic directory structure
+```bash
+mkdir -p ~/.config/nvim/after/plugin/ ~/.config/nvim/lua/config &&
+touch ~/.config/nvim/lua/config/lazy.lua &&
+touch ~/.config/nvim/init.lua
+```
 ## The Lazy package manager. 
 Regardless of your desired development language(s), the
 [Lazy.nvim](https://github.com/folke/lazy.nvim) package manager makes it
@@ -147,7 +153,7 @@ require("lazy").setup(plugins, {})
 After closing and reopening NeoVim, you will find that the lazy package manager
 is downloading all of the above plugins.
 
-![plugins loaded](./assets/02-plugins-loaded.png)
+![plugins loaded](./assets/01-plugins-loaded.png)
 
 ## Configure the plugins after they are loaded:
 After plugins are loaded using Lazy.nvim, NeoVim looks for files in the
@@ -211,6 +217,7 @@ vim.keymap.set("n", "<C-s>", function() harpoon:list():select(4) end)
 vim.keymap.set("n", "<C-S-P>", function() harpoon:list():prev() end)
 vim.keymap.set("n", "<C-S-N>", function() harpoon:list():next() end)
 ```
+![harpoon ui](./assets/harpoon.gif)
 
 ### undotree.lua
 ```lua
@@ -361,8 +368,6 @@ each server and configuring individual capabilities, to creating custom
 language servers linking them to custom filetypes. This is only meant to show
 an easy-to-implement approach.*
 
-![completion options](./assets/auto_complete_lsp_implemented.png)
-Completion has been configured.
 
 The new file structure after loading the plugins and configuring each one looks like this:
 ```
@@ -545,6 +550,7 @@ different than those in the development sphere.
   static type checking, and code completion with `nvim-lsp-cmp`.
     - This can be installed using `:MasonInstall pyright` from the command line
       in NeoVim. 
+    - *pyright relies on npm to install. Refer to the TypeScript section on instructions of how to install npm*
 
 #### Workflow Specific Configuration
 If you are hoping to work in a way similar to R-Programming Language, where you
@@ -670,8 +676,50 @@ mason:
 - `:MasonInstall tsserver` - TypeScript Language Server for LSP support.
 - `:MasonInstall eslint_d` - eslint for linting.
 
-![typescript hover on type](./assets/typescript-hover.png)
+![typescript hover on type](./assets/typescript.gif)
 While there are plugins available specifically for typescript like
 [typescript-tools.nvim](https://github.com/pmizio/typescript-tools.nvim), I
 have found that LSP support is enough for a basic implementation to work in
 TypeScript. 
+
+
+## General settings
+Some general settings you may be interested in implementing include setting
+relative line numbers, a color column, filetype triggering, and terminal buffer
+escaping. This can be added to a `~/.config/nvim/lua/config/settings.lua` file:
+
+```lua
+-- line numbering
+vim.opt.nu = true
+vim.opt.relativenumber = true
+
+-- set tab spaces to 4
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+vim.expandtab = true
+
+-- hand off undoing to undotree plugin and don't keep a swapfile
+vim.opt.swapfile = false
+vim.opt.backup = false
+vim.undodir = os.getenv("HOME") .. "/.vim.undodir"
+vim.opt.undofile = truea
+
+-- set incremental search. This helps immensly with tricky searches
+vim.opt.hlsearch = false
+vim.opt.incsearch = true
+
+-- fast update time
+vim.opt.updatetime = 50
+
+-- color column
+vim.opt.colorcolumn = "80"
+
+-- filetype trigger
+vim.opt.filetype='on'
+
+-- set escape to enter normal mode in terminal buffer
+vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], {silent = true, noremap = true})
+vim.api.nvim_set_keymap("n", "<leader><leader>term", ':belowright split | terminal<CR>', 
+    {noremap = true, silent=true})
+```
