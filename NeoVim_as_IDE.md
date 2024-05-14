@@ -27,9 +27,8 @@ After installation, NeoVim can be initiated by typing `nvim` in the terminal or
 clicking on the application in the applications menu.
 
 ### The nvim directory structure:
-This can be a headache for new users. Inside the `~/.config/nvim` directory, both the Lua
-API and the Lazy package manager expect the following files and directories to be
-present. 
+This can be a headache for new users. Inside the `~/.config/nvim` directory,
+NeoVim following files and directories to be present. 
 
 *the list of searched-for directories can also be found by typing `:h runtimepath`*
 
@@ -128,7 +127,7 @@ features like syntax highlighting, indentation, and more.
   [papercolor](https://github.com/NLKNguyen/papercolor-theme), [kanagawa](https://github.com/rebelot/kanagawa.nvim), or any of the
   [myriad of other themes](https://vimcolorschemes.com/) available.
 
-These plugins can all be added to the plugins list in
+These plugins can all be added to the plugins table in
 `~/.config/nvim/lua/config/lazy.lua`.
 
 ```lua
@@ -369,7 +368,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		vim.keymap.set('n','<leader>vca', function() vim.lsp.buf.code_action() end, opts) --view code action
 		vim.keymap.set('n','<leader>vrn', function() vim.lsp.buf.rename() end, opts) --rename variables
 		vim.keymap.set('n','<leader>vrr', function() vim.lsp.buf.references() end, opts)
-		vim.keymap.set('i','<leader>h', function() vim.lsp.buf.signature_help() end, opts)
+		vim.keymap.set('n','<leader>h', function() vim.lsp.buf.signature_help() end, opts)
     end
 })
 
