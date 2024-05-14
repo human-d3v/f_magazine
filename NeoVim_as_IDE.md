@@ -1,6 +1,5 @@
 # Setting up Development Environment with NeoVim on Fedora
-### Supercharge your development environment for Rust, TypeScript, Python, and more.
-
+### From 
 
 
 ### Downloading NeoVim on Fedora and getting started
@@ -48,7 +47,7 @@ script has run.
 The `/lua` directory contains the Lua Plugins. 
 
 Both `/plugin` and `/config` are directories that will be searched for runtime
-files by NeoVim.
+files.
 
 This script will build the basic directory structure:
 ```bash
@@ -64,6 +63,8 @@ incredibly easy to install and manage all of your plugins. Inside of your
 `~/.config/lua/config/lazy.lua` file, copy the following starter script:
 
 ```lua
+-- ~/.config/lua/config/lazy.lua
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   vim.fn.system({
@@ -87,9 +88,11 @@ require("lazy").setup(plugins, {})
 ```
 
 Finally, to invoke this new file, in your `~/.config/nvim/init.lua` file, you
-need to include it in your init file:
+need to include it in your init file, if you haven't already.
 
 ```lua
+-- ~/.config/nvim/init.lua
+
 require("config.lazy")
 ```
 
@@ -212,7 +215,7 @@ The resulting directory structure looks like this:
             ╰- lua/config/
                          ╰-lazy.lua
 ```
-### [](treesitter) treesitter.lua
+### treesitter.lua
 ```lua
 require("nvim-treesitter.configs").setup({
     ensure_installed = {"lua", "python","rust","go", "vimdoc", "c"}, --any language parsers you want installed
@@ -233,7 +236,7 @@ require("nvim-treesitter.configs").setup({
 })
 ```
 
-### [](telescope) telescope.lua 
+### telescope.lua 
 ```lua 
 local builtin = require("telescope.builtin")
 vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
@@ -690,7 +693,7 @@ remaps keybindings to the following:
 - `\aa` to send the entire file up to and including the current line to the
   REPL.
 
-![python repl](./assets/python_repl.gif)
+![python repl](./assets/python-repl.gif)
 
 
 
@@ -780,3 +783,5 @@ to source it:
 require('config.lazy')
 require('config.settings')
 ```
+
+
