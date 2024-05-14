@@ -13,25 +13,21 @@ Or build from source:
 ```bash
 # install dependencies
 sudo dnf -y install ninja-build cmake gcc make unzip gettext curl glibc-gconv-extra
-
+```
+```bash
 # clone repo
-git clone https://github.com/neovim/neovim
+git clone https://github.com/neovim/neovim &&
 cd neovim
-
+```
+```bash 
 # build and install package
 make CMAKE_BUILD_TYPE=Release
 sudo make install
-
 ```
-*to ensure that NeoVim builds correctly, ensure that you have `gcc` and `cmake`
-installed.*
+After installation, NeoVim can be initiated by typing `nvim` in the terminal or
+clicking on the application in the applications menu.
 
-After installation, it's time to configure NeoVim, you can do this by creating
-the `nvim` directory in your `~/.config` directory.
-```bash
-mkdir ~/.config/nvim 
-```
-##### The directory structure:
+### The nvim directory structure:
 This can be a headache for new users. Inside the `~/.config/nvim` directory, both the Lua
 API and the Lazy package manager expect the following files and directories to be
 present. 
@@ -51,19 +47,20 @@ script has run.
 
 The `/lua` directory contains the Lua Plugins. 
 
-Both `/plugin` and `/config` are both directories that will be searched by
-NeoVim for runtime files.
+Both `/plugin` and `/config` are directories that will be searched for runtime
+files by NeoVim.
 
-This script will build the basic directory structure
+This script will build the basic directory structure:
 ```bash
 mkdir -p ~/.config/nvim/after/plugin/ ~/.config/nvim/lua/config &&
 touch ~/.config/nvim/lua/config/lazy.lua &&
-touch ~/.config/nvim/init.lua
+touch ~/.config/nvim/init.lua &&
+echo "require('config.lazy')" >> ~/.config/nvim/init.lua
 ```
-## The Lazy package manager. 
+## The *Lazy* package manager. 
 Regardless of your desired development language(s), the
-[Lazy.nvim](https://github.com/folke/lazy.nvim) package manager makes it
-incredibly easy to install and manage all of your packages. Inside of your
+[Lazy.nvim](https://github.com/folke/lazy.nvim) plugin manager makes it
+incredibly easy to install and manage all of your plugins. Inside of your
 `~/.config/lua/config/lazy.lua` file, copy the following starter script:
 
 ```lua
@@ -96,12 +93,16 @@ need to include it in your init file:
 require("config.lazy")
 ```
 
-After saving and closing NeoVim, you will see a screen appear with the Lazy
-plugin management interface.
+After saving and closing NeoVim, type `:Lazy` to bring up the Lazy plugin
+manager interface.
 
 ![lazy.png](./assets/01-lazy-loaded.png)
 
-## Add additional plugins:
+
+## Add plugins:
+The basic workflow for adding a new plugin to NeoVim is as follows:
+![workflow](./assets/workflow.png)
+
 For any programming language, you will likely want the following plugins:
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) -- for additional
 functions (including asynchronous requests) in NeoVim.
@@ -109,7 +110,7 @@ functions (including asynchronous requests) in NeoVim.
 provides treesitter support for language parsers, queries, and additional
 features like syntax highlighting, indentation, and more.
 - [nvim-telescope](https://github.com/nvim-telescope/telescope.nvim) -- a fuzzy
-  finder for searching both projects and files. 
+  finder for searching projects, repositories, and files. 
 - [harpoon](https://github.com/ThePrimeagen/harpoon/tree/harpoon2) -- a ui/cli
   utility for switching between files quickly.
 - [undotree](https://github.com/mbbill/undotree) -- a visual representation of
@@ -117,9 +118,11 @@ features like syntax highlighting, indentation, and more.
 - [vim-fugitive](https://github.com/tpope/vim-fugitive) -- to add git
   functionality to your NeoVim experience.
 - [mason.nvim](https://github.com/williamboman/mason.nvim) for managing language servers (lsp).
+- [nvim-cmp](https://github.com/hrsh7th/nvim-cmp) -- for autocompletion support.
+- [LuaSnip](https://github.com/L3MON4D3/LuaSnip) -- snippet engine support.
 - A color scheme like [NeoSolarized](https://github.com/Tsuzat/NeoSolarized),
   [tokyonight](https://github.com/folke/tokyonight.nvim),
-  [papercolor](https://github.com/NLKNguyen/papercolor-theme), or any of the
+  [papercolor](https://github.com/NLKNguyen/papercolor-theme), [kanagawa](https://github.com/rebelot/kanagawa.nvim), or any of the
   [myriad of other themes](https://vimcolorschemes.com/) available.
 
 These plugins can all be added to the plugins list in
@@ -128,7 +131,7 @@ These plugins can all be added to the plugins list in
 ```lua
 -- partial file
 
-plugins = {
+local plugins = {
     "nvim-lua/plenary.nvim",
     {"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
     {"nvim-telescope/telescope.nvim", tag = '0.1.6', 
@@ -157,8 +160,58 @@ is downloading all of the above plugins.
 
 ## Configure the plugins after they are loaded:
 After plugins are loaded using Lazy.nvim, NeoVim looks for files in the
-`~/.config/nvim/after/plugin/` directory to configure them.
+`~/.config/nvim/after/plugin/` directory to configure them. Organize plugin
+configurations either by **function** or by **name**. 
 
+**Example of organization by function:**
+
+| **Function**                                  | **File**   | **Plugins**                                    |
+| --------------------------------------------- | --------   | ------------------------------------           |
+| Navigating files, git repos and fuzzy finding | nav.lua    | vim-fugitive, harpoon, telescope               |
+| Syntax parsing, lsp, completion               | lsp.lua    | treesitter, mason, nvim-cmp, nvim-lsp, luasnip |
+| Color scheme                                  | colors.lua | kanagawa (or comparable colorscheme)           |
+| Fixing mistakes                               | undo.lua   | undotree                                       |
+
+The resulting directory structure looks like this:
+
+```
+~/.config/nvim/
+            ╰- init.lua
+            ╰- after/plugin/
+                           ╰- nav.lua
+                           ╰- colors.lua
+                           ╰- lsp.lua
+                           ╰- undo.lua
+            ╰- lua/config/
+                         ╰-lazy.lua
+```
+**Example of organization by plugin name:**
+
+| **Function**                                  | **File**        | **Plugin**                           |
+| ------------------ | --------------- | -----------------------------------  |
+| Autocompletion     | cmp.lua         | nvim-cmp                             |
+| Color scheme       | colors.lua      | kanagawa (or comparable colorscheme) |
+| File jumping       | harpoon.lua     | harpoon                              |
+| Lsp support        | lsp.lua         | mason, nvim-lsp, luasnip             |
+| Fuzzy finding      | telescope.lua   | telescope                            |
+| Language parsing   | treesitter.lua  | treesitter                           |
+| Fixing mistakes    | undotree.lua    | undotree                             |
+
+The resulting directory structure looks like this:
+```
+~/.config/nvim/
+            ╰- init.lua
+            ╰- after/plugin/
+                           ╰- cmp.lua
+                           ╰- colors.lua
+                           ╰- harpoon.lua
+                           ╰- lsp.lua
+                           ╰- telescope.lua
+                           ╰- treesitter.lua
+                           ╰- undotree.lua
+            ╰- lua/config/
+                         ╰-lazy.lua
+```
 ### [](treesitter) treesitter.lua
 ```lua
 require("nvim-treesitter.configs").setup({
@@ -232,15 +285,18 @@ This sets `leader + u` to open the undotree ui.
 This file can be as simple as setting the colorscheme, or as complex as
 changing individual components.
 
-#### Simple Configuration
+#### Simple Configuration using kanagawa
 ```lua
--- assuming you decided to add {'rebelot/kanagawa.nvim'} to your lazy.lua file for your colorscheme
+-- assuming you added {'rebelot/kanagawa.nvim'} to your lazy.lua file for your colorscheme
 
 vim.cmd.colorscheme('kanagawa')
 ```
 
-#### More Complex Configuration
+#### More Complex Configuration using NeoSolarized
+
 ```lua
+-- assuming you added {'Tsuzat/NeoSolarized', lazy = false, priority = 1000, config = {}} to your lazy.lua file
+
 local okay_status, NeoSolarized = pcall(require, "NeoSolarized")
 if not okay_status then
   return
@@ -248,7 +304,7 @@ end
 
 NeoSolarized.setup({
 	style="dark",
-	transparent=true,
+	transparent=true, -- only if you want a transparent terminal background
 	terminal_colors=true,
 	enable_italics=true,
 	syles = {
@@ -368,23 +424,6 @@ each server and configuring individual capabilities, to creating custom
 language servers linking them to custom filetypes. This is only meant to show
 an easy-to-implement approach.*
 
-
-The new file structure after loading the plugins and configuring each one looks like this:
-```
-~/.config/nvim/
-            ╰- init.lua
-            ╰- after/plugin/
-                           ╰- cmp.lua
-                           ╰- colors.lua
-                           ╰- harpoon.lua
-                           ╰- lsp.lua
-                           ╰- telescope.lua
-                           ╰- treesitter.lua
-                           ╰- undotree.lua
-            ╰- lua/config/
-                         ╰-lazy.lua
-```
-
 ## Language-Specific Plugins and Configuration
 One of the wonderful parts of setting up NeoVim for your specific workflow and
 language(s) is its customizability. How you interact with your codebase in
@@ -392,19 +431,24 @@ entirely up to you. Such a blank canvas can be daunting. So I've prepared a few
 examples of configuration to get you started.
 
 ## Rust
-### Install Rust if you haven't already using `rustup`.
+### Install Rust using `rustup`
 ```bash
-## install rustup if you haven't already on Fedora
+## install rustup on Fedora
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
-
-## after installation of rustup, install the nightly (or stable) toolchain and component clippy
+```
+After installation, source the new env file by typing `. $HOME/.cargo/env` or
+close the terminal and reopen it, then use `rustup` to install the nightly toolchain.
+```bash
+## install the nightly (or stable) toolchain and component clippy
 rustup toolchain install nightly --allow-downgrade --profile minimal --component clippy
-
-## finally, install the rust-analyzer LSP from rustup
+```
+After installing the nightly toolchain, install the rust-analyzer LSP.
+```bash
+## install the rust-analyzer LSP component from rustup
 rustup component add rust-analyzer
 ```
 ### LSP
-When writing Rust in neovim using `rustaceanvim`, it's important to avoid installing
+When writing rust in NeoVim using `rustaceanvim`, it's important to avoid installing
 rust-analyzer via Mason, instead, use the `rustup component add rust-analyzer`
 command above. This will properly install the LSP to function with `rustaceanvim
 plugin`. This avoids downloading the rust-analyzer with the wrong toolchain.
@@ -415,13 +459,17 @@ The two plugins to download are:
   tools, including lsp, man pages, advanced running capabilities and more.
 - [nvim-dap](https://github.com/mfussenegger/nvim-dap) (Debug Adapter Protocol)
   for added debugging capabilities.
-
+```lua
+  -- the plugins to be added to lazy.lua
+{'mrcjkb/rustaceanvim', version = '^4', lazy = false}
+{'mfussenegger/nvim-dap'}
+```
 To load the plugins, add them to the `plugins` section of the `~/.config/nvim/lua/config/lazy.lua` file.
 ```lua
 --- partial file
 -- ~/.config/nvim/lua/config/lazy.lua
 
-plugins = {
+local plugins = {
     "nvim-lua/plenary.nvim",
 	{"nvim-treesitter/nvim-treesitter", build = ":TSUpdate"},
 	{"nvim-telescope/telescope.nvim", tag = "0.1.1",
@@ -440,7 +488,7 @@ plugins = {
 		{"williamboman/mason.nvim"}, --lsp manager
 		{"williamboman/mason-lspconfig.nvim"}, --lsp configs manager
 	--colorscheme
-	{"Tsuzat/NeoSolarized.nvim",lazy = false, priority=1000},
+    {'rebelot/kanagawa.nvim'}, 
     -- for Rust programming 
 	{'mrcjkb/rustaceanvim', version = '^4', lazy = false},
 	{'mfussenegger/nvim-dap'},
@@ -530,7 +578,7 @@ source (not shown here).
 sudo dnf install python3.12 python3-pip
 ```
 #### Optional Installation
-Common python packages that can be installed via `dnf` include:
+Common python libraries that can be installed via `dnf` include:
 - [python3-devel](https://packages.fedoraproject.org/pkgs/python3.12/python3-devel/)
   -- for development headers and libraries.
 - [python3-virtualenv](https://packages.fedoraproject.org/pkgs/python-virtualenv/python3-virtualenv/)
@@ -543,20 +591,21 @@ Common python packages that can be installed via `dnf` include:
 sudo dnf install python3-devel python3-virtualenv python3-pandas python3-numpy
 ```
 #### LSP Support
+
+[pyright](https://github.com/microsoft/pyright) for language server support,
+  static type checking, and code completion with `nvim-lsp-cmp`.
+  - This can be installed using `:MasonInstall pyright` from the command line
+    in NeoVim. 
+  - *pyright relies on **npm** to install. Refer to the TypeScript section on instructions of how to install npm*
+
+#### Workflow Specific Configuration
 As a researcher and data scientist, my implementation of Python may be
 different than those in the development sphere.
 
-- [pyright](https://github.com/microsoft/pyright) for language server support,
-  static type checking, and code completion with `nvim-lsp-cmp`.
-    - This can be installed using `:MasonInstall pyright` from the command line
-      in NeoVim. 
-    - *pyright relies on npm to install. Refer to the TypeScript section on instructions of how to install npm*
-
-#### Workflow Specific Configuration
 If you are hoping to work in a way similar to R-Programming Language, where you
 send commands to a terminal to work with data stored in memory, These two
 functions are used to create a python REPL and send selections of code to be
-evaluated in the REPL. You can add these to your
+evaluated in the REPL. You can add these functions to a
 `~/.config/nvim/after/plugin/python.lua` file.
 
 ```lua
@@ -591,6 +640,7 @@ function SendToTerminal(opt)
     if opt == 1 then
         vim.cmd('normal! gv"xy') -- move visual selection to x register
         txt = vim.fn.getreg('x')
+        vim.api.nvim_exec2(":'>",{}) -- move cursor to last highlighted line
     elseif opt == 2 then
         local ln, _ = unpack(vim.api.nvim_win_get_cursor(0))
         local line_txts = vim.api.nvim_buf_get_lines(vim.api.nvim_get_current_buf(), 0, ln, false)
@@ -651,7 +701,8 @@ To install TypeScript support on Fedora, you will need Node.js and npm
 ```bash
 ### if you want to install nodejs and npm directly from the fedora repos
 sudo dnf install nodejs npm  
-
+```
+```bash
 ### or install nvm if you want to control which version of nodejs you use (lts vs. latest)
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 ```
@@ -703,7 +754,7 @@ vim.expandtab = true
 vim.opt.swapfile = false
 vim.opt.backup = false
 vim.undodir = os.getenv("HOME") .. "/.vim.undodir"
-vim.opt.undofile = truea
+vim.opt.undofile = true
 
 -- set incremental search. This helps immensly with tricky searches
 vim.opt.hlsearch = false
@@ -722,4 +773,10 @@ vim.opt.filetype='on'
 vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], {silent = true, noremap = true})
 vim.api.nvim_set_keymap("n", "<leader><leader>term", ':belowright split | terminal<CR>', 
     {noremap = true, silent=true})
+```
+After creating the settings file, add it to the `~/.config/nvim/init.lua` file
+to source it:
+```lua
+require('config.lazy')
+require('config.settings')
 ```
